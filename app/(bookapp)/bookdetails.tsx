@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
-
+import colors from '../../assets/colors.json'
 const BookDetails = () => {
   const { params } = useRoute();
   const [readmore, showmore] = useState(false);
@@ -32,7 +32,7 @@ const BookDetails = () => {
               key={index}
               name={index < Math.floor(params?.rating) ? "star" : "star-o"}
               size={20}
-              color="#FFD700"
+              color={colors.green}
             />
           ))}
           <Text style={styles.rating}>{params?.rating.toFixed(1)}</Text>
@@ -84,11 +84,11 @@ const BookDetails = () => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#fdfdfd",
+    backgroundColor: colors.white,
     flexGrow: 1,
   },
   imageContainer: {
-    backgroundColor: "#eee",
+    backgroundColor: colors.white,
     overflow: "hidden",
   },
   image: {
@@ -103,14 +103,14 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     textAlign: "right",
-    color: "#333",
+    color: colors.black,
     marginBottom: 10,
   },
   author: {
     fontSize: 16,
     fontWeight: "500",
     textAlign: "right",
-    color: "#333",
+    color: colors.black,
     marginBottom: 10,
   },
   ratingContainer: {
@@ -122,23 +122,23 @@ const styles = StyleSheet.create({
   rating: {
     fontSize: 16,
     marginLeft: 8,
-    color: "#777",
+    color: colors.black,
   },
   description: {
     fontSize: 16,
     lineHeight: 24,
     textAlign: "right",
-    color: "#555",
+    color: colors.black,
     marginBottom: 20,
   },
   button: {
-    backgroundColor: "#16a085",
+    backgroundColor: colors.green,
     paddingVertical: 12,
     borderRadius: 15,
     alignItems: "center",
   },
   buttonText: {
-    color: "#fff",
+    color: colors.black,
     fontSize: 16,
     fontWeight: "600",
   },
