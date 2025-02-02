@@ -6,9 +6,16 @@ import {
   Image,
   ScrollView,
   Pressable,
+  Alert,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useNavigation } from "expo-router";
+import colors from '../../assets/colors.json';
+import { useEffect, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 const books = [
   {
     title: "القندس",
@@ -71,9 +78,93 @@ const books = [
     rating: 4,
   },
 ];
+const genres = ['Fantasy', 'Science Fiction', 'Mystery', 'Romance', 'Horror', 'Thriller', 'Non-fiction'];
 
+function GenreSelection(props) {
+  const [selectedGenres, setSelectedGenres] = useState([]);
+
+  useEffect(() => {
+    loadSelectedGenres();
+  }, []);
+
+  // Load saved genres
+  const loadSelectedGenres = async () => {
+    try {
+      const savedGenres = await AsyncStorage.getItem('favoriteGenres');
+      if (savedGenres) {
+        setSelectedGenres(JSON.parse(savedGenres));
+      }
+    } catch (error) {
+      console.log('Error loading genres:', error);
+    }
+  };
+
+  // Save selected genres
+  const saveGenres = async () => {
+    try {
+      await AsyncStorage.setItem('favoriteGenres', JSON.stringify(selectedGenres));
+      Alert.alert('Success', 'Your favorite genres have been saved!');
+    } catch (error) {
+      console.log('Error saving genres:', error);
+    }
+  };
+
+  // Handle genre selection
+  const handleSelectGenre = (genre) => {
+    if (selectedGenres.includes(genre)) {
+      setSelectedGenres(selectedGenres.filter((g) => g !== genre));
+    } else if (selectedGenres.length < 3) {
+      setSelectedGenres([...selectedGenres, genre]);
+    } else {
+      Alert.alert('Limit Reached', 'You can only select up to 3 genres.');
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Select Your Favorite Genres (Up to 3)</Text>
+      <FlatList
+        data={genres}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={[
+              styles.genreItem,
+              selectedGenres.includes(item) && styles.selectedGenreItem,
+            ]}
+            onPress={() => handleSelectGenre(item)}
+          >
+            <Text style={styles.genreText}>{item}</Text>
+          </TouchableOpacity>
+        )}
+      />
+      <TouchableOpacity style={styles.saveButton} onPress={saveGenres}>
+        <Text style={styles.saveButtonText}>Save Genres</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
 export default function Index() {
   const navigation = useNavigation();
+  const [loading, setLoading] = useState(true);
+  const [selectedGenres, setSelectedGenres] = useState([])
+  useEffect(() => {
+    checkBookGenres()
+  }, [])
+  const checkBookGenres = async () => {
+    try {
+      const savedGenres = await AsyncStorage.getItem('favoriteGenres');
+      if (savedGenres) {
+        setLoading(false)
+        setSelectedGenres(JSON.parse(savedGenres));
+      }
+      setLoading(false)
+
+    } catch (error) {
+      console.log('Error loading genres:', error);
+      setLoading(false)
+    };
+  }
+
   const Book = (item) => {
     return (
       <Pressable
@@ -82,21 +173,22 @@ export default function Index() {
         }}
         style={{
           overflow: "hidden",
-          width: Dimensions.get("window").width * 0.33,
+          width: Dimensions.get("window").width * 0.37,
           // height: 300,?
-          backgroundColor: "#33d9b2855",
+          backgroundColor: colors.white,
           // height: 200,
-          borderWidth: 2,
-          borderColor: "#4b4b4b",
-          borderRadius: 5,
-          margin: 2.5,
+          borderWidth: 3,
+          borderColor: colors.green,
+          borderRadius: 25,
         }}
       >
-        <View style={{ flex: 2.3, width: "100%", overflow: "hidden" }}>
+        <View style={{ flex: 2.3, width: "100%", overflow: "hidden", alignItems: 'center', justifyContent: 'center' }}>
           <Image
             style={{
-              width: "100%",
-              height: "100%",
+              width: "90%",
+              margin: 10,
+              borderRadius: 25,
+              height: "90%",
               overflow: "hidden",
             }}
             resizeMode="cover"
@@ -118,6 +210,7 @@ export default function Index() {
             // ellipsizeMode='middle'
             // adjustsFontSizeToFit
             style={{
+              color: colors.black,
               textAlign: "right",
               fontWeight: "bold",
             }}
@@ -128,6 +221,7 @@ export default function Index() {
             numberOfLines={1}
             ellipsizeMode="middle"
             style={{
+              color: colors.black,
               textAlign: "right",
             }}
           >
@@ -142,7 +236,10 @@ export default function Index() {
               alignItems: "center",
             }}
           >
-            <Text>2011</Text>
+            <Text style={{
+              color: colors.black,
+
+            }}>2011</Text>
             <View
               style={{
                 flexDirection: "row",
@@ -151,14 +248,31 @@ export default function Index() {
                 alignItems: "center",
               }}
             >
-              <Text style={{ alignItems: "center" }}>{item.rating}</Text>
-              <Ionicons name="star" size={15} color="#16a085" />
+              <Text style={{
+                alignItems: "center",
+                color: colors.black,
+
+              }}>{item.rating}</Text>
+              <Ionicons name="star" size={15} color={colors.green} />
             </View>
           </View>
         </View>
       </Pressable>
     );
   };
+  if (loading) {
+    return (<View style={{
+      ...Dimensions.get('window'),
+      justifyContent: 'center',
+      alignItems: 'center'
+    }}>
+      <ActivityIndicator color={colors.green} size={'large'} />
+    </View>)
+  }
+  if(selectedGenres.length==0){
+return <GenreSelection />
+
+  }
   return (
     <ScrollView
       style={{
@@ -169,10 +283,9 @@ export default function Index() {
         <Text
           style={{
             margin: 10,
-            color: "#4b4b4b",
             fontWeight: "bold",
             fontSize: 25,
-
+            color: colors.black,
             textAlign: "right",
           }}
         >
@@ -183,6 +296,10 @@ export default function Index() {
           horizontal
           showsHorizontalScrollIndicator={false}
           inverted
+          contentContainerStyle={{
+            gap: 10,
+            paddingStart: 15
+          }}
           style={{ width: Dimensions.get("window").width, height: 250 }}
           renderItem={({ item, index }) => <Book {...item} />}
         />
@@ -191,7 +308,7 @@ export default function Index() {
         <Text
           style={{
             margin: 10,
-            color: "#4b4b4b",
+            color: colors.black,
             fontWeight: "bold",
             fontSize: 25,
             textAlign: "right",
@@ -203,6 +320,11 @@ export default function Index() {
           data={books}
           horizontal
           inverted
+          contentContainerStyle={{
+            gap: 10,
+            paddingStart: 15
+
+          }}
           style={{ width: Dimensions.get("window").width, height: 250 }}
           renderItem={({ item, index }) => <Book {...item} />}
         />
@@ -210,8 +332,8 @@ export default function Index() {
       <View>
         <Text
           style={{
+            color: colors.black,
             margin: 10,
-            color: "#4b4b4b",
             fontWeight: "bold",
             fontSize: 25,
             textAlign: "right",
@@ -223,6 +345,11 @@ export default function Index() {
           data={books}
           horizontal
           inverted
+          contentContainerStyle={{
+            gap: 10
+            ,
+            paddingStart: 15
+          }}
           style={{ width: Dimensions.get("window").width, height: 250 }}
           renderItem={({ item, index }) => <Book {...item} />}
         />
@@ -230,3 +357,43 @@ export default function Index() {
     </ScrollView>
   );
 }
+
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#fff',
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  genreItem: {
+    padding: 15,
+    marginVertical: 5,
+    borderRadius: 10,
+    backgroundColor: '#e0e0e0',
+  },
+  selectedGenreItem: {
+    backgroundColor: '#4caf50',
+  },
+  genreText: {
+    fontSize: 16,
+    color: '#000',
+  },
+  saveButton: {
+    marginTop: 20,
+    padding: 15,
+    borderRadius: 10,
+    backgroundColor: '#2196f3',
+    alignItems: 'center',
+  },
+  saveButtonText: {
+    fontSize: 16,
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+});
