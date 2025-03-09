@@ -9,75 +9,17 @@ import {
   Alert,
   StyleSheet,
   TouchableOpacity,
-  ActivityIndicator
+  ActivityIndicator,
+  TextInput
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useNavigation } from "expo-router";
 import colors from '../../assets/colors.json';
 import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-const books = [
-  {
-    title: "القندس",
-    author: "محمد حسن علوان",
-    image: "https://picsum.photos/150/300",
-    rating: 5.0,
-  },
-  {
-    title: "عائد إلى حيفا",
-    author: "غسان كنفاني",
-    image: "https://example.com/images/haifa_return.jpg",
-    rating: 3.5,
-  },
-  {
-    title: "أولاد حارتنا",
-    author: "نجيب محفوظ",
-    image: "https://example.com/images/awlad_haratna.jpg",
-    rating: 4,
-  },
-  {
-    title: "في قلبي أنثى عبرية",
-    author: "خولة حمدي",
-    image: "https://example.com/images/fiqalbi.jpg",
-    rating: 4.5,
-  },
-  {
-    title: "رواية ساق البامبو",
-    author: "سعود السنعوسي",
-    image: "https://example.com/images/saq_albamboo.jpg",
-    rating: 4,
-  },
-  {
-    title: "الرجال من المريخ والنساء من الزهرة",
-    author: "جون غراي",
-    image: "https://example.com/images/men_mars_women_venus.jpg",
-    rating: 4,
-  },
-  {
-    title: "الخيميائي",
-    author: "باولو كويلو",
-    image: "https://example.com/images/alchemist.jpg",
-    rating: 4,
-  },
-  {
-    title: "زوربا",
-    author: "نيكوس كازانتزاكيس",
-    image: "https://example.com/images/zorba.jpg",
-    rating: 4,
-  },
-  {
-    title: "الأسود يليق بك",
-    author: "أحلام مستغانمي",
-    image: "https://example.com/images/alaswad_yaliq_bik.jpg",
-    rating: 4,
-  },
-  {
-    title: "الأجنحة المتكسرة",
-    author: "جبران خليل جبران",
-    image: "https://example.com/images/wings_broken.jpg",
-    rating: 4,
-  },
-];
+import { mostrated, foryou, latest } from '../../books';
+import { EvilIcons, FontAwesome } from "@expo/vector-icons";
+
 const genres = ['Fantasy', 'Science Fiction', 'Mystery', 'Romance', 'Horror', 'Thriller', 'Non-fiction'];
 
 function GenreSelection(props) {
@@ -173,16 +115,17 @@ export default function Index() {
         }}
         style={{
           overflow: "hidden",
-          width: Dimensions.get("window").width * 0.37,
-          // height: 300,?
+          width: Dimensions.get("window").width * (item.search ? 0.3 : 0.37),
+          height: item.search ? 250 : null,
           backgroundColor: colors.white,
           // height: 200,
           borderWidth: 3,
           borderColor: colors.green,
           borderRadius: 25,
+          marginHorizontal: item.search ? 5 : 0,
         }}
       >
-        <View style={{ flex: 2.3, width: "100%", overflow: "hidden", alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ flex: item.search ? 1.8 : 2.3, width: "100%", overflow: "hidden", alignItems: 'center', justifyContent: 'center' }}>
           <Image
             style={{
               width: "90%",
@@ -193,7 +136,7 @@ export default function Index() {
             }}
             resizeMode="cover"
             source={{
-              uri: "https://picsum.photos/200/300",
+              uri: item.image,
             }}
           />
         </View>
@@ -238,8 +181,7 @@ export default function Index() {
           >
             <Text style={{
               color: colors.black,
-
-            }}>2011</Text>
+            }}>{item.year}</Text>
             <View
               style={{
                 flexDirection: "row",
@@ -260,6 +202,8 @@ export default function Index() {
       </Pressable>
     );
   };
+  const [search, setSearch] = useState('');
+
   if (loading) {
     return (<View style={{
       ...Dimensions.get('window'),
@@ -269,8 +213,8 @@ export default function Index() {
       <ActivityIndicator color={colors.green} size={'large'} />
     </View>)
   }
-  if(selectedGenres.length==0){
-return <GenreSelection />
+  if (selectedGenres.length == 0) {
+    return <GenreSelection />
 
   }
   return (
@@ -279,81 +223,103 @@ return <GenreSelection />
         width: Dimensions.get("window").width,
       }}
     >
-      <View>
-        <Text
-          style={{
-            margin: 10,
-            fontWeight: "bold",
-            fontSize: 25,
-            color: colors.black,
-            textAlign: "right",
-          }}
-        >
-          الكتب الاعلى تقييما
-        </Text>
-        <FlatList
-          data={books}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          inverted
-          contentContainerStyle={{
-            gap: 10,
-            paddingStart: 15
-          }}
-          style={{ width: Dimensions.get("window").width, height: 250 }}
-          renderItem={({ item, index }) => <Book {...item} />}
-        />
+      <View style={{
+        width: Dimensions.get("window").width,
+        padding: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
+      }}>
+        <FontAwesome name='search' size={30} color='#3a3a3a' style={{ alignSelf: 'center' }} />
+        <TextInput style={{ borderRadius: 15, borderWidth: 1, flex: 1, paddingRight: 10,borderColor:"#3a3a3a" }} onChangeText={setSearch} value={search} placeholder='ابحث عن كتاب' />
       </View>
-      <View>
-        <Text
-          style={{
-            margin: 10,
-            color: colors.black,
-            fontWeight: "bold",
-            fontSize: 25,
-            textAlign: "right",
-          }}
-        >
-          الكتب الاحدث
-        </Text>
-        <FlatList
-          data={books}
-          horizontal
-          inverted
-          contentContainerStyle={{
-            gap: 10,
-            paddingStart: 15
+      {search !== '' ?
+        <View>
 
-          }}
-          style={{ width: Dimensions.get("window").width, height: 250 }}
-          renderItem={({ item, index }) => <Book {...item} />}
-        />
-      </View>
-      <View>
-        <Text
-          style={{
-            color: colors.black,
-            margin: 10,
-            fontWeight: "bold",
-            fontSize: 25,
-            textAlign: "right",
-          }}
-        >
-          من اجلك
-        </Text>
-        <FlatList
-          data={books}
-          horizontal
-          inverted
-          contentContainerStyle={{
-            gap: 10
-            ,
-            paddingStart: 15
-          }}
-          style={{ width: Dimensions.get("window").width, height: 250 }}
-          renderItem={({ item, index }) => <Book {...item} />}
-        />
-      </View>
+          <FlatList
+            numColumns={3}
+            data={[...mostrated, ...foryou, ...latest].filter(i => (i.author.toLowerCase().includes(search.toLowerCase())
+              || (i.title.toLowerCase().startsWith(search.toLowerCase()))))}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 20, }}
+            style={{ width: Dimensions.get("window").width, }} ا
+            renderItem={({ item, index }) => <Book {...item} search />}
+          />
+        </View> : <>
+          <View>
+            <Text
+              style={{
+                margin: 10,
+                fontWeight: "bold",
+                fontSize: 25,
+                color: colors.black,
+                textAlign: "right",
+              }}
+            >
+              الكتب الاعلى تقييما
+            </Text>
+            <FlatList
+              data={mostrated}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              inverted
+              contentContainerStyle={{
+                gap: 10,
+                paddingStart: 15
+              }}
+              style={{ width: Dimensions.get("window").width, height: 250 }}
+              renderItem={({ item, index }) => <Book {...item} />}
+            />
+          </View>
+          <View>
+            <Text
+              style={{
+                margin: 10,
+                color: colors.black,
+                fontWeight: "bold",
+                fontSize: 25,
+                textAlign: "right",
+              }}
+            >
+              الكتب الاحدث
+            </Text>
+            <FlatList
+              data={latest}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              inverted
+              contentContainerStyle={{
+                gap: 10,
+                paddingStart: 15
+
+              }}
+              style={{ width: Dimensions.get("window").width, height: 250 }}
+              renderItem={({ item, index }) => <Book {...item} />}
+            />
+          </View>
+          <View>
+            <Text
+              style={{
+                color: colors.black,
+                margin: 10,
+                fontWeight: "bold",
+                fontSize: 25,
+                textAlign: "right",
+              }}
+            >
+              من اجلك
+            </Text>
+            <FlatList
+              data={foryou}
+              showsHorizontalScrollIndicator={false}
+              horizontal
+              inverted
+              contentContainerStyle={{
+                gap: 10,
+                paddingStart: 15
+              }}
+              style={{ width: Dimensions.get("window").width, height: 250 }}
+              renderItem={({ item, index }) => <Book {...item} />}
+            />
+          </View>
+        </>}
     </ScrollView>
   );
 }
